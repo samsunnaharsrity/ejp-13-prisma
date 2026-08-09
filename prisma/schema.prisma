@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -9,7 +10,8 @@ datasource db {
 // ENUMS
 
 enum Role {
-  USER
+  BUYER
+  ARTIST
   ADMIN
 }
 
@@ -41,15 +43,14 @@ enum PaymentStatus {
 
 // USER
 
-
 model User {
-  id        String      @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  email     String      @unique
+  email     String     @unique
   password  String
-  role      Role        @default(USER)
-  status    UserStatus  @default(ACTIVE)
-  isDeleted Boolean     @default(false)
+  role      Role       @default(BUYER)
+  status    UserStatus @default(ACTIVE)
+  isDeleted Boolean    @default(false)
 
   reviews Review[]
   orders  Order[]
@@ -143,7 +144,7 @@ model Order {
   isDeleted     Boolean       @default(false)
 
   userId String
-  user   User @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   items OrderItem[]
 
