@@ -1,53 +1,42 @@
 import express from "express";
 import cors from "cors";
-
-import { env } from "./config/env";
+import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth.routes";
-import userRoutes from "./routes/user.routes";
 
-import {
-  notFound,
-  errorHandler,
-} from "./middleware/error.middleware";
+dotenv.config();
 
 const app = express();
 
-// CORS
 app.use(
   cors({
-    origin: env.frontendUrl,
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   })
 );
 
-// Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Root route
-app.get("/", (req, res) => {
-  res.json({
+app.get("/api/health", (_req, res) => {
+  res.status(200).json({
     success: true,
-    message: "SCIC EJP-13 API is running",
+    message: "ArtHub API is running",
+    data: null,
   });
 });
 
-// Health check
-app.get("/api/health", (req, res) => {
-  res.json({
-    success: true,
-    message: "Server is healthy",
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
 
-// Error handling
-app.use(notFound);
-app.use(errorHandler);
+
+// app.use("/api/users", userRoutes);
+// app.use("/api/categories", categoryRoutes);
+// app.use("/api/artworks", artworkRoutes);
+// app.use("/api/artists", artistRoutes);
+// app.use("/api/reviews", reviewRoutes);
+// app.use("/api/wishlist", wishlistRoutes);
+// app.use("/api/orders", orderRoutes);
+// app.use("/api/subscriptions", subscriptionRoutes);
+// app.use("/api/admin", adminRoutes);
 
 export default app;

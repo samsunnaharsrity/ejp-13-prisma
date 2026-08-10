@@ -19,22 +19,40 @@ export const getCategories = async () => {
     where: {
       isDeleted: false,
     },
+    include: {
+      artworks: {
+        where: {
+          isDeleted: false,
+        },
+      },
+    },
     orderBy: {
       name: "asc",
     },
   });
 };
 
-export const getCategoryById = async (id: string) => {
+export const getCategoryById = async (
+  id: string
+) => {
   return prisma.category.findFirst({
     where: {
       id,
       isDeleted: false,
     },
     include: {
-      products: {
+      artworks: {
         where: {
           isDeleted: false,
+        },
+        include: {
+          artist: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+            },
+          },
         },
       },
     },
@@ -47,18 +65,45 @@ export const updateCategory = async (
     name?: string;
     slug?: string;
     description?: string;
-    image?: string;
   }
 ) => {
+  const category = await prisma.category.findFirst({
+    where: {
+      id,
+      isDeleted: false,
+    },
+  });
+
+  if (!category) {
+    throw new Error("Category not found");
+  }
+
   return prisma.category.update({
-    where: { id },
+    where: {
+      id,
+    },
     data,
   });
 };
 
-export const deleteCategory = async (id: string) => {
+export const deleteCategory = async (
+  id: string
+) => {
+  const category = await prisma.category.findFirst({
+    where: {
+      id,
+      isDeleted: false,
+    },
+  });
+
+  if (!category) {
+    throw new Error("Category not found");
+  }
+
   return prisma.category.update({
-    where: { id },
+    where: {
+      id,
+    },
     data: {
       isDeleted: true,
     },

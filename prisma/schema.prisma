@@ -7,7 +7,9 @@ datasource db {
   provider = "postgresql"
 }
 
+// ================================
 // ENUMS
+// ================================
 
 enum Role {
   BUYER
@@ -21,10 +23,10 @@ enum UserStatus {
   BANNED
 }
 
-enum ProductStatus {
-  ACTIVE
-  INACTIVE
-  OUT_OF_STOCK
+enum ArtworkStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum OrderStatus {
@@ -41,19 +43,39 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum ReviewStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+}
+
+// ================================
 // USER
+// ================================
 
 model User {
   id        String     @id @default(cuid())
   name      String
   email     String     @unique
   password  String
+  avatar    String?
   role      Role       @default(BUYER)
   status    UserStatus @default(ACTIVE)
   isDeleted Boolean    @default(false)
 
-  reviews Review[]
-  orders  Order[]
+  // Relations
+  artistProfile ArtistProfile?
+  artworks      Artwork[]
+  reviews       Review[]
+  wishlist      Wishlist[]
+  orders        Order[]
+  subscriptions Subscription[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -65,76 +87,140 @@ model User {
   @@map("users")
 }
 
+// ================================
+// ARTIST PROFILE
+// ================================
+
+model ArtistProfile {
+  id          String   @id @default(cuid())
+  bio         String?
+  location    String?
+  website     String?
+  instagram   String?
+  facebook    String?
+  experience  String?
+  specialties String[]
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("artist_profiles")
+}
+
+// ================================
 // CATEGORY
+// ================================
 
 model Category {
   id          String  @id @default(cuid())
   name        String  @unique
+  slug        String  @unique
   description String?
   isDeleted   Boolean @default(false)
 
-  products Product[]
+  artworks Artwork[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([name])
+  @@index([slug])
   @@index([isDeleted])
   @@map("categories")
 }
 
-// PRODUCT
+// ================================
+// ARTWORK
+// ================================
 
-model Product {
+model Artwork {
   id          String        @id @default(cuid())
-  name        String
-  description String?
+  title       String
+  slug        String        @unique
+  description String
   price       Decimal       @db.Decimal(10, 2)
-  stock       Int           @default(0)
-  image       String?
-  status      ProductStatus @default(ACTIVE)
+  image       String
+  images      String[]
+  tags        String[]
+  status      ArtworkStatus @default(PENDING)
   isDeleted   Boolean       @default(false)
 
+  artistId   String
   categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+
+  artist   User     @relation(fields: [artistId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
 
   reviews    Review[]
+  wishlist   Wishlist[]
   orderItems OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([artistId])
   @@index([categoryId])
   @@index([status])
   @@index([isDeleted])
-  @@map("products")
+  @@index([createdAt])
+  @@map("artworks")
 }
 
+// ================================
 // REVIEW
+// ================================
 
 model Review {
-  id        String  @id @default(cuid())
+  id        String       @id @default(cuid())
   rating    Int
   comment   String?
-  isDeleted Boolean @default(false)
+  status    ReviewStatus @default(ACTIVE)
+  isDeleted Boolean      @default(false)
 
   userId    String
-  productId String
+  artworkId String
 
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artwork Artwork @relation(fields: [artworkId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, productId])
+  @@unique([userId, artworkId])
   @@index([userId])
-  @@index([productId])
+  @@index([artworkId])
+  @@index([status])
   @@index([isDeleted])
   @@map("reviews")
 }
 
+// ================================
+// WISHLIST
+// ================================
+
+model Wishlist {
+  id String @id @default(cuid())
+
+  userId    String
+  artworkId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artwork Artwork @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, artworkId])
+  @@index([userId])
+  @@index([artworkId])
+  @@map("wishlists")
+}
+
+// ================================
 // ORDER
+// ================================
 
 model Order {
   id            String        @id @default(cuid())
@@ -155,10 +241,13 @@ model Order {
   @@index([status])
   @@index([paymentStatus])
   @@index([isDeleted])
+  @@index([createdAt])
   @@map("orders")
 }
 
+// ================================
 // ORDER ITEM
+// ================================
 
 model OrderItem {
   id       String  @id @default(cuid())
@@ -166,15 +255,69 @@ model OrderItem {
   price    Decimal @db.Decimal(10, 2)
 
   orderId   String
-  productId String
+  artworkId String
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  artwork Artwork @relation(fields: [artworkId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([orderId])
-  @@index([productId])
+  @@index([artworkId])
   @@map("order_items")
+}
+
+// ================================
+// SUBSCRIPTION PLAN
+// ================================
+
+model SubscriptionPlan {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal @db.Decimal(10, 2)
+
+  // Number of artworks allowed.
+  // null = unlimited
+  artworkLimit Int?
+
+  isActive Boolean @default(true)
+
+  subscriptions Subscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@map("subscription_plans")
+}
+
+// ================================
+// SUBSCRIPTION
+// ================================
+
+model Subscription {
+  id String @id @default(cuid())
+
+  userId String
+  planId String
+
+  status    SubscriptionStatus @default(ACTIVE)
+  startDate DateTime
+  endDate   DateTime?
+
+  isDeleted Boolean @default(false)
+
+  user User             @relation(fields: [userId], references: [id])
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+  @@index([isDeleted])
+  @@map("subscriptions")
 }
