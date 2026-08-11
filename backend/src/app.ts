@@ -8,10 +8,6 @@ import userRoutes from "./routes/user.routes";
 import categoryRoutes from "./routes/category.routes";
 import artworkRoutes from "./routes/artwork.routes";
 import artistRoutes from "./routes/artist.routes";
-import reviewRoutes from "./routes/review.routes";
-import wishlistRoutes from "./routes/wishlist.routes";
-import orderRoutes from "./routes/order.routes";
-import subscriptionRoutes from "./routes/subscription.routes";
 import adminRoutes from "./routes/admin.routes";
 
 dotenv.config();
@@ -47,10 +43,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/artworks", artworkRoutes);
 app.use("/api/artists", artistRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/wishlist", wishlistRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/admin", adminRoutes);
 
 // 404 HANDLER
