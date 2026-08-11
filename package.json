@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/server.js",
-  "scripts": {
-    "dev": "tsx watch backend/src/server.ts",
-    "build": "tsc -p backend/tsconfig.json",
-    "start": "node backend/dist/server.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
-  },
+"scripts": {
+  "dev": "tsx watch src/server.ts",
+  "build": "tsc -p tsconfig.json",
+  "start": "node dist/server.js",
+  "prisma:generate": "prisma generate",
+  "prisma:migrate": "prisma migrate dev"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
