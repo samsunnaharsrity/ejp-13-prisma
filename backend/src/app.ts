@@ -28,6 +28,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // HEALTH CHECK
 
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "ArtHub API is running",
+  });
+});
+
 app.get("/api/health", (_req, res) => {
   res.status(200).json({
     success: true,
