@@ -15,7 +15,6 @@ dotenv.config();
 const app = express();
 
 // MIDDLEWARE
-
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -27,7 +26,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // HEALTH CHECK
-
 app.get("/", (_req, res) => {
   res.status(200).json({
     success: true,
@@ -44,7 +42,6 @@ app.get("/api/health", (_req, res) => {
 });
 
 // ROUTES
-
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -53,7 +50,6 @@ app.use("/api/artists", artistRoutes);
 app.use("/api/admin", adminRoutes);
 
 // 404 HANDLER
-
 app.use((_req, res) => {
   res.status(404).json({
     success: false,
@@ -62,7 +58,6 @@ app.use((_req, res) => {
 });
 
 // ERROR HANDLER
-
 app.use(
   (
     err: any,
